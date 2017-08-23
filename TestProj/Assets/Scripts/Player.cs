@@ -13,14 +13,14 @@ public class Player : MonoBehaviour
     public int knockbackForce;
     Vector3 knockbackDir;
 
-    // Use this for initialization
+
     void Start ()
     {
         maxHealth = 100;
         currentHealth = 100;
     }
 
-    // Update is called once per frame
+
     void FixedUpdate ()
     {
         //Checking if player is alive. If not, destroy
@@ -30,7 +30,6 @@ public class Player : MonoBehaviour
         }
 	}
 
-    //Collision handler
     void OnCollisionEnter(Collision _col)
     {
         if (_col.gameObject.tag == "Enemy")
@@ -61,36 +60,4 @@ public class Player : MonoBehaviour
         //Adding force opposite to collision direction
         GetComponent<Rigidbody>().AddForce(knockbackDir * knockbackForce);
     }
-
-   
-
-
-
-
-    /*void GhostForm(bool isEnabled, Collider _collidedWith)
-    {
-        Color color = GetComponent<Renderer>().material.color;
-        if (isEnabled)
-        {
-            //Setting transparency to 50% when in ghost mode      
-            color.a = .5f;
-            GetComponent<Renderer>().material.SetColor("_Color", color);
-            //==========================================================
-            //Ignoring collison with the enemy
-            Physics.IgnoreCollision(_collidedWith, GetComponent<Collider>(), true);
-            Debug.Log("ignoring");
-        }
-        else
-        {
-            Physics.IgnoreCollision(_collidedWith, GetComponent<Collider>(), false);
-            isGhost = false;
-            //Setting transparency to 50% when in ghost mode
-            color.a = 1f;
-            GetComponent<Renderer>().material.SetColor("_Color", color);
-            //==========================================================
-            Debug.Log("not ignoring");
-        }
-
-    }*/
-
 }
