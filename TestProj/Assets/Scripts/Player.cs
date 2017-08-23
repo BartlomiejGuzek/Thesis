@@ -10,18 +10,14 @@ public class Player : MonoBehaviour
 {
     public float maxHealth;
     public float currentHealth;
-    public float ghostTimer;
     public int knockbackForce;
     Vector3 knockbackDir;
-    public UIHandler uiHandlerScript;
-
 
     // Use this for initialization
     void Start ()
     {
         maxHealth = 100;
         currentHealth = 100;
-        ghostTimer = 4;
     }
 
     // Update is called once per frame
@@ -41,6 +37,8 @@ public class Player : MonoBehaviour
         {
             //Calculate Angle Between the collision point and the player
             knockbackDir = _col.contacts[0].point - transform.position;
+            //We then get the opposite (-Vector3) and normalize it
+            knockbackDir = -knockbackDir.normalized;
             //Apply knockback
             ApplyKnockback();
         }
@@ -52,13 +50,22 @@ public class Player : MonoBehaviour
         Debug.Log("-" + _damage);
         Debug.Log("Current hp:" + currentHealth);
     }
+
+    public void Heal(float _healAmmount)
+    {
+        currentHealth = Mathf.Clamp(currentHealth + _healAmmount, 0, 100);
+    }
+
     void ApplyKnockback()
     {
-        //We then get the opposite (-Vector3) and normalize it
-        knockbackDir = -knockbackDir.normalized;
         //Adding force opposite to collision direction
         GetComponent<Rigidbody>().AddForce(knockbackDir * knockbackForce);
     }
+
+   
+
+
+
 
     /*void GhostForm(bool isEnabled, Collider _collidedWith)
     {
