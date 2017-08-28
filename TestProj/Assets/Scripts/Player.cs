@@ -1,25 +1,51 @@
-﻿using System.Collections;
+﻿using UnityEngine;
+using System.Collections;
+using System.IO.Ports;
+using System;
+using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 
 
 
 public class Player : MonoBehaviour
 {
+
+    
     public float maxHealth;
     public float currentHealth;
     public int knockbackForce;
     Vector3 knockbackDir;
 
+    SerialPort serialPort = new SerialPort("COM4", 115200);
+
 
     void Start ()
     {
+
+        serialPort.Open();
+        serialPort.ReadTimeout = 100;
         maxHealth = 100;
         currentHealth = 100;
     }
 
+    private void Update()
+    {
+        //Checking if serial port is open
+        if (serialPort.IsOpen)  
+        {
+            try
+            {
+                //Need to write a char to start reading from dmp
+                serialPort.Write("s");
+                //On read event
+                SerialEvent(serialPort);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+    }
 
     void FixedUpdate ()
     {
@@ -60,4 +86,26 @@ public class Player : MonoBehaviour
         //Adding force opposite to collision direction
         GetComponent<Rigidbody>().AddForce(knockbackDir * knockbackForce);
     }
+
+    void SerialEvent(SerialPort myPort)
+    {
+        
+        string buffer = serialPort.ReadLine();
+
+        if (buffer != null)
+        {
+            if(buffer.Contains("ypr"))
+            {
+                
+                string[] values = buffer.Split('|');
+                foreach (string s in values)
+                {
+                    Debug.Log(s);
+                }
+            }
+           // Debug.Log(buffer);
+        }
+    }
+
+
 }
