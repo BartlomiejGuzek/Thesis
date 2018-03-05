@@ -1,60 +1,81 @@
-﻿using UnityEngine;
+﻿
+using UnityEngine;
 using System.Collections;
 using System.IO.Ports;
 using System;
 using System.Linq;
 using System.Collections.Generic;
-
+using UnityEngine.PostProcessing;
 
 
 public class Player : MonoBehaviour
 {
-
-    
     public float maxHealth;
     public float currentHealth;
     public int knockbackForce;
+    public int score;
+    public TrackGen trackGeneratorScript;
     Vector3 knockbackDir;
+    [SerializeField]
+    UIHandler uiHandler;
+    AudioSource audioSource;
+    [SerializeField]
+    public AudioClip ripSound;
+    public AudioClip scoreSound;
+    public PlateInput plate;
+    bool ripSoundIsPlaying;
+    float minimumChromaticAb = 0;
+    float maximumChromaticAb = 1;
+    public PostProcessingProfile postPProfile;
+    ChromaticAberrationModel.Settings chromAbSettings;
+    int smooth = 30;
+    bool isHit;
+    bool isDead;
+    public Animator animator;
 
-    SerialPort serialPort = new SerialPort("COM4", 115200);
 
 
     void Start ()
     {
-
-        serialPort.Open();
-        serialPort.ReadTimeout = 100;
-        maxHealth = 100;
         currentHealth = 100;
+        audioSource = GetComponent<AudioSource>();
+        ripSoundIsPlaying = false;
+        chromAbSettings = postPProfile.chromaticAberration.settings;
+        chromAbSettings.intensity = 0;
+        postPProfile.chromaticAberration.settings = chromAbSettings;
+        isHit = false;
+        isDead = false;
+        Time.timeScale = 1;
     }
 
     private void Update()
-    {
-        //Checking if serial port is open
-        if (serialPort.IsOpen)  
-        {
-            try
-            {
-                //Need to write a char to start reading from dmp
-                serialPort.Write("s");
-                //On read event
-                SerialEvent(serialPort);
-            }
-            catch (System.Exception)
-            {
-                throw;
-            }
-        }
+    { 
+           /* chromAbSettings.intensity = Mathf.Lerp(0, 1, Time.deltaTime * smooth);
+            postPProfile.chromaticAberration.settings = chromAbSettings;*/    
     }
 
     void FixedUpdate ()
     {
-        //Checking if player is alive. If not, destroy
+        CheckHealth();
+    }
+
+    private void CheckHealth()
+    {
         if (currentHealth <= 0)
         {
-            DestroyObject(gameObject);
+            plate.speed = 0;
+            uiHandler.DisplayGameOverHud(true);
+            if (ripSoundIsPlaying == false)
+            {
+                audioSource.PlayOneShot(ripSound, .5f);
+                ripSoundIsPlaying = true;
+                GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+                animator.SetBool("isDead", isDead);
+                Time.timeScale = 0;
+            }
+
         }
-	}
+    }
 
     void OnCollisionEnter(Collision _col)
     {
@@ -62,18 +83,40 @@ public class Player : MonoBehaviour
         {
             //Calculate Angle Between the collision point and the player
             knockbackDir = _col.contacts[0].point - transform.position;
-            //We then get the opposite (-Vector3) and normalize it
             knockbackDir = -knockbackDir.normalized;
-            //Apply knockback
-            ApplyKnockback();
+            Hit();
+        }
+    }
+
+    public void Hit()
+    {
+        isHit = true;
+        ApplyKnockback();
+        ApplyDamage(20);
+    }
+
+
+    private void OnTriggerEnter(Collider _col)
+    {
+        if (_col.gameObject.tag == "Trigger Spawn")
+        {
+            trackGeneratorScript.SpawnTrack();
+            AddScore(1);
         }
     }
 
     public void ApplyDamage(float _damage)
     {
         currentHealth = Mathf.Clamp(currentHealth - _damage, 0, 100);
-        Debug.Log("-" + _damage);
-        Debug.Log("Current hp:" + currentHealth);
+        uiHandler.UpdateHealth(currentHealth);
+
+    }
+
+    public void AddScore(int _score)
+    {
+        score = score + _score;
+        uiHandler.UpdateScore(score);
+        audioSource.PlayOneShot(scoreSound, .5f);
     }
 
     public void Heal(float _healAmmount)
@@ -86,26 +129,5 @@ public class Player : MonoBehaviour
         //Adding force opposite to collision direction
         GetComponent<Rigidbody>().AddForce(knockbackDir * knockbackForce);
     }
-
-    void SerialEvent(SerialPort myPort)
-    {
-        
-        string buffer = serialPort.ReadLine();
-
-        if (buffer != null)
-        {
-            if(buffer.Contains("ypr"))
-            {
-                
-                string[] values = buffer.Split('|');
-                foreach (string s in values)
-                {
-                    Debug.Log(s);
-                }
-            }
-           // Debug.Log(buffer);
-        }
-    }
-
 
 }

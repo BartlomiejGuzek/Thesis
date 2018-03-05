@@ -5,6 +5,11 @@ TagManager:
   serializedVersion: 2
   tags:
   - Enemy
+  - Track Generator
+  - Plate
+  - Spawn Point
+  - Trigger Spawn
+  - Fatty
   layers:
   - Default
   - TransparentFX

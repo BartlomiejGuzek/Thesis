@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class Zapper : MonoBehaviour
 {
-    public float damage;
+   
+    public AudioSource hitSound;
 
 
     void Start ()
@@ -24,6 +25,7 @@ public class Zapper : MonoBehaviour
         if (_col.gameObject.tag == "Player")
         {
             GhostForm();
+            Zapp();
         }
     }
 
@@ -41,7 +43,8 @@ public class Zapper : MonoBehaviour
     // TODO
     void Zapp()
     {
-
+        hitSound.Play();
     }
+
 
 }

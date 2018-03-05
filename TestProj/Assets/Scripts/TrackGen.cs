@@ -8,35 +8,64 @@ public class TrackGen : MonoBehaviour
     [SerializeField]
     private GameObject trackPrefab;
     [SerializeField]
-    private int trackLenght = 20;
-    private Vector3 trackOffset = new Vector3(0, 16, 0);
-    private Vector3 actualOffset;
+    private GameObject emptyTrackPrefab;
+    private Vector3 trackOffset = new Vector3(0, 6, 0);
+    private Vector3 actualOffset = new Vector3(0, 0, 0);
     //Enemies related variables
     [SerializeField]
     private GameObject zapperPrefab;
-    [SerializeField]
-    private int zapperAmmount = 20;
+    private int trackNumber = 0;
+    private int previousTrackNumber = 0;
+    public bool isRunning;
 
 
-    void Start ()
+    void Start()
     {
+        isRunning = true;
         //Instantiate trackPrefab, trackLenght times
-        for (int i = 0; i < trackLenght; ++i)
+        for (int i = 0; i < 2; ++i)
         {
-            GameObject trackPart = Instantiate(trackPrefab, GetComponent<Transform>().position + actualOffset, Quaternion.identity) as GameObject;
+            GameObject trackPart = Instantiate(emptyTrackPrefab, GetComponent<Transform>().position + actualOffset, Quaternion.identity) as GameObject;
             actualOffset = actualOffset + trackOffset;
             trackPart.transform.Rotate(-90, 0, 180);
+            trackPart.transform.parent = gameObject.transform;
+            trackNumber++;
+            trackPart.name = "BaseTrack" + trackNumber.ToString();
         }
-        for (int i = 0; i < zapperAmmount; ++i)
-        {
-            Vector3 zapperPosition = new Vector3(Random.Range(-6, 4), Random.Range(5, 350), -2.6f);
-            GameObject zapper = Instantiate(zapperPrefab, zapperPosition, Quaternion.identity) as GameObject;
-        }
-
+        
     }
 	
 	void Update ()
     {
+        if(isRunning)
+        {
+            if (previousTrackNumber >= 3)
+            {
+                DeleteTrack(1);
+                DeleteTrack(2);
+                DeleteTrack(previousTrackNumber);
+            }
+
+
+        }
 		
 	}
+
+    public void SpawnTrack()
+    {
+        GameObject trackPart = Instantiate(trackPrefab, GetComponent<Transform>().position + actualOffset, Quaternion.identity) as GameObject;
+        actualOffset = actualOffset + trackOffset;
+        trackPart.transform.Rotate(-90, 0, 180);
+        trackPart.transform.parent = gameObject.transform;
+        trackNumber++;
+        previousTrackNumber = trackNumber - 4;
+        trackPart.name = "BaseTrack" + trackNumber.ToString();
+        
+    }
+
+    public void DeleteTrack(int _trackToDelete)
+    {
+            Destroy(GameObject.Find("BaseTrack" + _trackToDelete.ToString()));  
+    }
+   
 }
